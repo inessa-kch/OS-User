@@ -3,43 +3,32 @@ CC = gcc
 CFLAGS = -I/usr/include/SDL2 -Wall -Wextra -g
 LDFLAGS = -lSDL2 -lSDL2_image -lSDL2_ttf -lpthread
 
-# Directories
-SRC_DIR = .
-BIN_DIR = bin
 
 # Source files
-CLIENT_SRC = $(SRC_DIR)/sh13.c
-SERVER_SRC = $(SRC_DIR)/server.c
+CLIENT_SRC = src/sh13.c
+SERVER_SRC = src/server.c
 
 # Executables
-CLIENT_BIN = $(BIN_DIR)/sh13
-SERVER_BIN = $(BIN_DIR)/server
+CLIENT_BIN = bin/sh13
+SERVER_BIN = bin/server
 
 # Default target
 all: $(CLIENT_BIN) $(SERVER_BIN)
 
 # Create bin directory if it doesn't exist
-$(BIN_DIR):
-	mkdir -p $(BIN_DIR)
+bin:
+	mkdir -p bin
 
 # Compile client
-$(CLIENT_BIN): $(CLIENT_SRC) | $(BIN_DIR)
+$(CLIENT_BIN): $(CLIENT_SRC) | bin
 	$(CC) $(CFLAGS) $(CLIENT_SRC) -o $(CLIENT_BIN) $(LDFLAGS)
 
 # Compile server
-$(SERVER_BIN): $(SERVER_SRC) | $(BIN_DIR)
+$(SERVER_BIN): $(SERVER_SRC) | bin
 	$(CC) $(CFLAGS) $(SERVER_SRC) -o $(SERVER_BIN) -lpthread
-
-# Run the server in a new terminal
-run-server: $(SERVER_BIN)
-	gnome-terminal -- bash -c "$(SERVER_BIN); exec bash"
-
-# Run the client in a new terminal
-run-client: $(CLIENT_BIN)
-	gnome-terminal -- bash -c "$(CLIENT_BIN); exec bash"
 
 # Clean build artifacts
 clean:
-	rm -rf $(BIN_DIR)
+	rm -rf bin
 
-.PHONY: all clean run-server run-client
+.PHONY: all clean
