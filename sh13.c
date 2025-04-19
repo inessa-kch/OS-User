@@ -214,7 +214,7 @@ int main(int argc, char ** argv)
     texture_gobutton = SDL_CreateTextureFromSurface(renderer, gobutton);
     texture_connectbutton = SDL_CreateTextureFromSurface(renderer, connectbutton);
 
-    TTF_Font* Sans = TTF_OpenFont("sans.ttf", 15); 
+    TTF_Font* Sans = TTF_OpenFont("font/sans.ttf", 15); 
     printf("Sans=%p\n",Sans);
 
    /* Creation du thread serveur tcp. */
@@ -274,6 +274,7 @@ int main(int argc, char ** argv)
 
 					// RAJOUTER DU CODE ICI
 
+
 					}
 					else if ((objetSel!=-1) && (joueurSel==-1))
 					{
@@ -311,27 +312,54 @@ int main(int argc, char ** argv)
 			// Message 'I' : le joueur recoit son Id
 			case 'I':
 				// RAJOUTER DU CODE ICI
+				sscanf(gbuffer+2,"%d",&id);
+				gId=id;
+				printf("id=%d\n",id);
+				// lui envoyer un message personnel pour lui communiquer son id
+				sprintf(sendBuffer,"I %d",id);
+				sendMessageToServer(gServerIpAddress,gServerPort,sendBuffer);
+
 
 				break;
 			// Message 'L' : le joueur recoit la liste des joueurs
 			case 'L':
 				// RAJOUTER DU CODE ICI
+				sscanf(gbuffer+2,"%s %s %s %s",gNames[0],gNames[1],gNames[2],gNames[3]);
+				printf("gNames[0]=%s gNames[1]=%s gNames[2]=%s gNames[3]=%s\n",gNames[0],gNames[1],gNames[2],gNames[3]);
+				// Envoyer un message de la liste des joueurs
+				sprintf(sendBuffer,"L %s %s %s %s", gNames[0], gNames[1], gNames[2], gNames[3]);
+				sendMessageToServer(gServerIpAddress,gServerPort,sendBuffer);
 
 				break;
 			// Message 'D' : le joueur recoit ses trois cartes
 			case 'D':
 				// RAJOUTER DU CODE ICI
+				sscanf(gbuffer+2,"%d %d %d", &b[0], &b[1], &b[2]);
+				printf("b[0]=%d b[1]=%d b[2]=%d\n",b[0],b[1],b[2]);
+				// Envoyer un message de ses cartes
+				sprintf(sendBuffer,"D %d %d %d", b[0], b[1], b[2]);
+				sendMessageToServer(gServerIpAddress,gServerPort,sendBuffer);
 
 				break;
 			// Message 'M' : le joueur recoit le n° du joueur courant
 			// Cela permet d'affecter goEnabled pour autoriser l'affichage du bouton go
 			case 'M':
 				// RAJOUTER DU CODE ICI
+				
+
+
+				
 
 				break;
 			// Message 'V' : le joueur recoit une valeur de tableCartes
 			case 'V':
 				// RAJOUTER DU CODE ICI
+				sscanf(gbuffer+2,"%d %d %d", &i, &j, &tableCartes[i][j]);
+				printf("tableCartes[%d][%d]=%d\n",i,j,tableCartes[i][j]);
+
+				// Envoyer un message de la valeur de tableCartes
+				sprintf(sendBuffer,"V %d %d %d", i, j, tableCartes[i][j]);
+				sendMessageToServer(gServerIpAddress,gServerPort,sendBuffer);
 
 				break;
 		}
