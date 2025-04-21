@@ -380,7 +380,6 @@ int main(int argc, char *argv[])
 						sprintf(reply, "W %d %s", joueur, nomcartes[deck[12]]);
 						broadcastMessage(reply);
 						printf("Player %d wins the game!\n", joueur);
-						// fsmServer = 0; // Reset le jeu
 						exit(0);
 					}
 					else
