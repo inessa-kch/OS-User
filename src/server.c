@@ -5,7 +5,7 @@
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
-
+#include <time.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 
@@ -25,6 +25,7 @@ char *nomcartes[]=
   "inspector Hopkins", "Sherlock Holmes", "John Watson", "Mycroft Holmes",
   "Mrs. Hudson", "Mary Morstan", "James Moriarty"};
 int joueurCourant;
+int elimine[4] = {0, 0, 0, 0}; 
 
 void error(const char *msg)
 {
@@ -199,6 +200,15 @@ void sendMessageToClient(char *clientip,int clientport,char *mess)
     close(sockfd);
 }
 
+int nextPlayer(){
+	int i;
+	for (i = 1; i <= 4; i++) {
+        int next = (joueurCourant + i) % 4;
+        if (!elimine[next]) return next;
+    }
+    return -1;
+}
+
 void broadcastMessage(char *mess)
 {
         int i;
@@ -211,6 +221,7 @@ void broadcastMessage(char *mess)
 
 int main(int argc, char *argv[])
 {
+	srand(time(NULL));
      int sockfd, newsockfd, portno;
      socklen_t clilen;
      char buffer[256];
@@ -277,67 +288,80 @@ int main(int argc, char *argv[])
         	switch (buffer[0])
         	{
                 	case 'C':
-                        	sscanf(buffer,"%c %s %d %s", &com, clientIpAddress, &clientPort, clientName);
-                        	printf("COM=%c ipAddress=%s port=%d name=%s\n",com, clientIpAddress, clientPort, clientName);
+						sscanf(buffer,"%c %s %d %s", &com, clientIpAddress, &clientPort, clientName);
+						printf("COM=%c ipAddress=%s port=%d name=%s\n",com, clientIpAddress, clientPort, clientName);
 
-                        	// fsmServer==0 alors j'attends les connexions de tous les joueurs
-                                strcpy(tcpClients[nbClients].ipAddress,clientIpAddress);
-                                tcpClients[nbClients].port=clientPort;
-                                strcpy(tcpClients[nbClients].name,clientName);
-                                nbClients++;
+						// fsmServer==0 alors j'attends les connexions de tous les joueurs
+						strcpy(tcpClients[nbClients].ipAddress,clientIpAddress);
+						tcpClients[nbClients].port=clientPort;
+						strcpy(tcpClients[nbClients].name,clientName);
+						nbClients++;
 
-                                printClients();
+						printClients();
 
-				// rechercher l'id du joueur qui vient de se connecter
+						// rechercher l'id du joueur qui vient de se connecter
 
-                                id=findClientByName(clientName);
-                                printf("id=%d\n",id);
+						id=findClientByName(clientName);
+						printf("id=%d\n",id);
 
-				// lui envoyer un message personnel pour lui communiquer son id
+						// lui envoyer un message personnel pour lui communiquer son id
 
-                                sprintf(reply,"I %d",id);
-                                sendMessageToClient(tcpClients[id].ipAddress,
-                                       tcpClients[id].port,
-                                       reply);
+						sprintf(reply,"I %d",id);
+						sendMessageToClient(tcpClients[id].ipAddress,
+								tcpClients[id].port,
+								reply);
 
-				// Envoyer un message broadcast pour communiquer a tout le monde la liste des joueurs actuellement
-				// connectes
+						// Envoyer un message broadcast pour communiquer a tout le monde la liste des joueurs actuellement
+						// connectes
 
-                                sprintf(reply,"L %s %s %s %s", tcpClients[0].name, tcpClients[1].name, tcpClients[2].name, tcpClients[3].name);
-                                broadcastMessage(reply);
+						sprintf(reply,"L %s %s %s %s", tcpClients[0].name, tcpClients[1].name, tcpClients[2].name, tcpClients[3].name);
+						broadcastMessage(reply);
 
-				// Si le nombre de joueurs atteint 4, alors on peut lancer le jeu
+						// Si le nombre de joueurs atteint 4, alors on peut lancer le jeu
 
-                                if (nbClients==4)
-				{
-					// On envoie ses cartes au joueur 0, ainsi que la ligne qui lui correspond dans tableCartes
-					// RAJOUTER DU CODE ICI
-					sprintf(reply,"D %d %d %d", deck[0], deck[1], deck[2]);
-					sendMessageToClient(tcpClients[0].ipAddress,tcpClients[0].port, reply);
-					
+					if (nbClients==4)
+					{
+						// On envoie ses cartes au joueur 0, ainsi que la ligne qui lui correspond dans tableCartes
+						// RAJOUTER DU CODE ICI
+						sprintf(reply,"D %d %d %d", deck[0], deck[1], deck[2]);
+						sendMessageToClient(tcpClients[0].ipAddress,tcpClients[0].port, reply);
+						for (int j = 0; j < 8; j++) {
+							sprintf(reply, "V %d %d", j, tableCartes[0][j]);
+							sendMessageToClient(tcpClients[0].ipAddress, tcpClients[0].port, reply);
+						}
 
-					// On envoie ses cartes au joueur 1, ainsi que la ligne qui lui correspond dans tableCartes
-					// RAJOUTER DU CODE ICI
-					sprintf(reply,"D %d %d %d", deck[3], deck[4], deck[5]);
-					sendMessageToClient(tcpClients[1].ipAddress,tcpClients[1].port, reply);
+						// On envoie ses cartes au joueur 1, ainsi que la ligne qui lui correspond dans tableCartes
+						// RAJOUTER DU CODE ICI
+						sprintf(reply,"D %d %d %d", deck[3], deck[4], deck[5]);
+						sendMessageToClient(tcpClients[1].ipAddress,tcpClients[1].port, reply);
+						for (int j = 0; j < 8; j++) {
+							sprintf(reply, "V %d %d", j, tableCartes[1][j]);
+							sendMessageToClient(tcpClients[1].ipAddress, tcpClients[1].port, reply);
+						}
 
-					// On envoie ses cartes au joueur 2, ainsi que la ligne qui lui correspond dans tableCartes
-					// RAJOUTER DU CODE ICI
-					sprintf(reply,"D %d %d %d", deck[6], deck[7], deck[8]);
-					sendMessageToClient(tcpClients[2].ipAddress,tcpClients[2].port, reply);
+						// On envoie ses cartes au joueur 2, ainsi que la ligne qui lui correspond dans tableCartes
+						// RAJOUTER DU CODE ICI
+						sprintf(reply,"D %d %d %d", deck[6], deck[7], deck[8]);
+						sendMessageToClient(tcpClients[2].ipAddress,tcpClients[2].port, reply);
+						for (int j = 0; j < 8; j++) {
+							sprintf(reply, "V %d %d", j, tableCartes[2][j]);
+							sendMessageToClient(tcpClients[2].ipAddress, tcpClients[2].port, reply);
+						}
+						// On envoie ses cartes au joueur 3, ainsi que la ligne qui lui correspond dans tableCartes
+						// RAJOUTER DU CODE ICI
+						sprintf(reply,"D %d %d %d", deck[9], deck[10], deck[11]);
+						sendMessageToClient(tcpClients[3].ipAddress,tcpClients[3].port, reply);
+						for (int j = 0; j < 8; j++) {
+							sprintf(reply, "V %d %d", j, tableCartes[3][j]);
+							sendMessageToClient(tcpClients[3].ipAddress, tcpClients[3].port, reply);
+						}
+						// On envoie enfin un message a tout le monde pour definir qui est le joueur courant=0
+						// RAJOUTER DU CODE ICI
+						sprintf(reply,"M %d", joueurCourant);
+						broadcastMessage(reply);
 
-					// On envoie ses cartes au joueur 3, ainsi que la ligne qui lui correspond dans tableCartes
-					// RAJOUTER DU CODE ICI
-					sprintf(reply,"D %d %d %d", deck[9], deck[10], deck[11]);
-					sendMessageToClient(tcpClients[3].ipAddress,tcpClients[3].port, reply);
-
-					// On envoie enfin un message a tout le monde pour definir qui est le joueur courant=0
-					// RAJOUTER DU CODE ICI
-					sprintf(reply,"M %d", joueurCourant);
-					broadcastMessage(reply);
-
-                                        fsmServer=1;
-				}
+											fsmServer=1;
+					}
 				break;
                 }
 	}
@@ -345,24 +369,97 @@ int main(int argc, char *argv[])
 	{
 		switch (buffer[0])
 		{
-                	case 'G':
-				// RAJOUTER DU CODE ICI
+			case 'G': 
+				{
+					int joueur, coupable;
+					sscanf(buffer, "G %d %d", &joueur ,&coupable);
+					printf("Player %d guessed the culprit: %d (%s)\n", joueur, coupable, nomcartes[coupable]);
+	
+					if (coupable == deck[12]) 
+					{
+						sprintf(reply, "W %d %s", joueur, nomcartes[deck[12]]);
+						broadcastMessage(reply);
+						printf("Player %d wins the game!\n", joueur);
+						fsmServer = 0; // Reset le jeu
+					}
+					else
+					{
+						elimine[joueur] = 1;
+						sprintf(reply, "F %d", joueur);
+						broadcastMessage(reply);
+						printf("Player %d failed the guess.\n", joueur);
+						sprintf(reply, "F %s", nomcartes[deck[12]]);
+						sendMessageToClient(tcpClients[joueur].ipAddress, tcpClients[joueur].port, reply);
 
-				
 
-				break;
-                	case 'O':
-				// RAJOUTER DU CODE ICI
-
-				break;
+						int allEliminated = 1;
+						for (int i = 0; i < 4; i++)
+						{
+							if (!elimine[i])
+							{
+								allEliminated = 0;
+								break;
+							}
+						}
+						if (allEliminated)
+						{
+							sprintf(reply, "E");
+							broadcastMessage(reply);
+							printf("All players are eliminated. Game over.\n");
+							fsmServer = 0; // Reset le jeu
+						}
+						else
+						{
+							joueurCourant = nextPlayer();
+							sprintf(reply, "M %d", joueurCourant);
+							broadcastMessage(reply);
+						}
+					}
+					break;
+				}
+			case 'O': // A player asks for information
+				{
+					int joueur, clue;
+					sscanf(buffer, "O %d %d", &joueur, &clue);
+					printf("Player %d asks all of the players for clue index %d\n", joueur, clue);
+	
+					for (int i = 0; i < 4; i++) {
+						if (i != joueur) {
+							if (tableCartes[i][clue] > 0) {
+								sprintf(reply, "R 1 %d", i);
+							} else {
+								sprintf(reply, "R 0 %d", i);
+							}
+							sendMessageToClient(tcpClients[joueur].ipAddress, tcpClients[joueur].port, reply);
+						}
+					}
+					
+					// Move to the next player
+					joueurCourant = nextPlayer();
+					sprintf(reply, "M %d", joueurCourant); // Notify all players of the new current player
+					broadcastMessage(reply);
+					break;
+				}
 			case 'S':
-				// RAJOUTER DU CODE ICI
-
+				{
+					int joueur, joueurSel, clue;
+					sscanf(buffer, "S %d %d %d", &joueur, &joueurSel, &clue);
+					printf("Player %d asks for clue index %d from Player %d\n", joueur, clue, joueurSel);
+					
+					sprintf(reply, "R %d %d", tableCartes[joueurSel][clue], joueurSel);
+					sendMessageToClient(tcpClients[joueur].ipAddress, tcpClients[joueur].port, reply);
+					
+	
+					// Move to the next player
+					joueurCourant = nextPlayer();
+					sprintf(reply, "M %d", joueurCourant); 
+					broadcastMessage(reply);
+					break;
+				}
+			default:
 				break;
-                	default:
-                        	break;
 		}
-        }
+	}
      	close(newsockfd);
      }
      close(sockfd);
