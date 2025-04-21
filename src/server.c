@@ -322,7 +322,6 @@ int main(int argc, char *argv[])
 					if (nbClients==4)
 					{
 						// On envoie ses cartes au joueur 0, ainsi que la ligne qui lui correspond dans tableCartes
-						// RAJOUTER DU CODE ICI
 						sprintf(reply,"D %d %d %d", deck[0], deck[1], deck[2]);
 						sendMessageToClient(tcpClients[0].ipAddress,tcpClients[0].port, reply);
 						for (int j = 0; j < 8; j++) {
