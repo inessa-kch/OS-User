@@ -51,7 +51,7 @@ Le projet est organisé en plusieurs dossiers pour faciliter la gestion des fich
      ```bash
      make
      ```
-   - Les exécutables seront générés dans le dossier [bin](http://_vscodecontentref_/0).
+   - Les exécutables seront générés dans le dossier `bin`.
 
 ### 3. **Exécution**
    - **Lancer le serveur :**
@@ -80,7 +80,7 @@ Le projet est organisé en plusieurs dossiers pour faciliter la gestion des fich
 ---
 
 ## Règles du Jeu
-Les règles du jeu Sherlock 13 sont disponibles dans le dossier [docs](http://_vscodecontentref_/0). Consultez ce fichier ainsi que le rapport pour comprendre les mécaniques du jeu et les actions possibles.
+Les règles du jeu Sherlock 13 sont disponibles dans le dossier [docs](https://github.com/inessa-kch/OS-User/tree/main/docs). Consultez ce fichier ainsi que le rapport pour comprendre les mécaniques du jeu et les actions possibles.
 
 ---
 
